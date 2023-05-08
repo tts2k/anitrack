@@ -3,8 +3,9 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/tts2k/anitrack/cmd/config"
+	config "github.com/tts2k/anitrack/cmd/config"
 	"github.com/tts2k/anitrack/cmd/logger"
+	site "github.com/tts2k/anitrack/cmd/site"
 )
 
 const VERSION = "0.1"
@@ -34,6 +35,7 @@ func init() {
 	// Commands
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(config.Command)
+	rootCmd.AddCommand(site.Command)
 }
 
 func Execute() {

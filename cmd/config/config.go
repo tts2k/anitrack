@@ -1,9 +1,11 @@
-package config
+package cmd
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/viper"
 
@@ -103,4 +105,21 @@ func InitConfig() {
 
 func GetConfig() *Config {
 	return &config
+}
+
+func SetToken(accessToken string, refreshToken string) {
+	switch strings.ToLower(config.ActiveSite) {
+	case "kitsu":
+		config.Kitsu.AccessToken = accessToken
+		config.Kitsu.RefreshToken = refreshToken
+		viper.Set("Kitsu", config.Kitsu)
+	case "mal":
+	case "anilist":
+	}
+
+	err := viper.WriteConfig()
+	if err != nil {
+		fmt.Println(err)
+		fmt.Println("Error writing config to disk")
+	}
 }
