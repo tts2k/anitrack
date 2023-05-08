@@ -1,10 +1,13 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	config "github.com/tts2k/anitrack/cmd/config"
-	"github.com/tts2k/anitrack/cmd/logger"
+	logger "github.com/tts2k/anitrack/cmd/logger"
 	site "github.com/tts2k/anitrack/cmd/site"
 )
 
@@ -19,18 +22,18 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print Anitrack version",
 	Run: func(_ *cobra.Command, _ []string) {
-		logger.Println(VERSION)
+		fmt.Println(VERSION)
 	},
 }
 
 func init() {
 	cobra.OnInitialize(config.InitConfig)
-	conf := config.GetConfig()
-	// Initialize logger
-	logger.InitLogger(conf.Verbose)
 
 	// Persistent Flags
-	rootCmd.PersistentFlags().BoolVarP(&conf.Verbose, "verbose", "v", false, "verbose output")
+	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "verbose output")
+
+	// Viper bind
+	_ = viper.BindPFlag("verbose", rootCmd.Flags().Lookup("verbose"))
 
 	// Commands
 	rootCmd.AddCommand(versionCmd)
@@ -41,6 +44,6 @@ func init() {
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
-		logger.Errorln(err)
+		logger.Error(err)
 	}
 }

@@ -9,7 +9,7 @@ import (
 
 	"github.com/spf13/viper"
 
-	"github.com/tts2k/anitrack/cmd/logger"
+	logger "github.com/tts2k/anitrack/cmd/logger"
 )
 
 type AuthData struct {
@@ -31,8 +31,8 @@ var config Config
 func getConfigDir() (string, error) {
 	userConfigDir, err := os.UserConfigDir()
 	if err != nil {
-		logger.Debugln(err)
-		logger.Errorln("Cannot get user config dir")
+		logger.Error(err)
+		logger.Error("Cannot get user config dir")
 		return "", err
 	}
 
@@ -53,7 +53,7 @@ func CheckConfigDir() (string, bool) {
 		return anitrackConfigDir, false
 	}
 	if err != nil {
-		logger.Debugln(err)
+		logger.Error(err)
 		return "", false
 	}
 
@@ -69,7 +69,7 @@ func InitConfigDir() error {
 	if err != nil {
 		return err
 	}
-	logger.Warnf("A new directory has been created at %s\n", anitrackConfigDir)
+	logger.Warn("A new directory has been created at " + anitrackConfigDir)
 
 	return nil
 }
@@ -86,8 +86,8 @@ func initViper() error {
 
 func InitConfig() {
 	if err := initViper(); err != nil && !os.IsNotExist(err) {
-		logger.Debugln(err)
-		logger.Errorln("Error reading config file: " + viper.ConfigFileUsed())
+		logger.Error(err)
+		logger.Error("Error reading config file: " + viper.ConfigFileUsed())
 	}
 
 	// Default active site
@@ -98,8 +98,8 @@ func InitConfig() {
 
 	// Unmarshal config file
 	if err := viper.Unmarshal(&config); err != nil {
-		logger.Errorln("Error parsing config file")
-		logger.WarnLn("Using default config")
+		logger.Error("Error parsing config file")
+		logger.Warn("Using default config")
 	}
 }
 

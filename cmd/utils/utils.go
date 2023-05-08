@@ -1,4 +1,4 @@
-package utils
+package cmd
 
 import (
 	"errors"
@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tts2k/anitrack/cmd/logger"
+	logger "github.com/tts2k/anitrack/cmd/logger"
 )
 
 // Get modified time of a file
@@ -18,8 +18,8 @@ func getFileModTime(filePath string) (time.Time, error) {
 		return time.Time{}, err
 	}
 	if err != nil {
-		logger.Debugln(err)
-		logger.Errorln("Cannot get file stats")
+		logger.Error(err)
+		logger.Error("Cannot get file stats")
 		return time.Time{}, err
 	}
 
@@ -63,7 +63,7 @@ func OpenExternalEditor(filePath string) bool {
 func Prompt(message string, loop bool) bool {
 	for ok := true; ok; ok = loop {
 		var choice string
-		logger.Print("%s [Y/n]: ", message)
+		fmt.Printf("%s [Y/n]: ", message)
 		fmt.Scanf("%s", &choice)
 
 		if strings.ToLower(choice) == "y"  {

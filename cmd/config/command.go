@@ -3,8 +3,8 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/tts2k/anitrack/cmd/logger"
-	"github.com/tts2k/anitrack/cmd/utils"
+	logger "github.com/tts2k/anitrack/cmd/logger"
+	utils "github.com/tts2k/anitrack/cmd/utils"
 )
 
 var Command *cobra.Command
@@ -27,7 +27,7 @@ func editCommandRun(_ *cobra.Command, _ []string) {
 			return
 		}
 		if err != nil {
-			logger.Debugln(err)
+			logger.Error(err)
 			return
 		}
 	} else if !ok {
@@ -37,9 +37,9 @@ func editCommandRun(_ *cobra.Command, _ []string) {
 	// Open external editor
 	ok = utils.OpenExternalEditor(config.ConfigPath)
 	if ok {
-		logger.Println("Config changed")
+		logger.Info("Config changed")
 	} else {
-		logger.Println("Config unchanged")
+		logger.Info("Config unchanged")
 	}
 }
 

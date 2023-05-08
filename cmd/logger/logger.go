@@ -1,118 +1,76 @@
-package logger
+package cmd
 
 import (
+	"io"
 	"log"
 	"os"
 	"runtime"
 )
 
-var logger *log.Logger
-var verbose bool = false
+type level int
+type levelConfig struct {
+	color  string
+	output io.Writer
+}
 
-type loggerMode int
+var logger *log.Logger
 
 const (
-	none loggerMode = iota
+	none level = iota
 	info
 	debug
 	warn
-	error
+	err
 )
 
-var colors = []string{
-	"",
-	"\033[36m", // Cyan
-	"\033[32m", // Green
-	"\033[33m", // Yellow
-	"\033[32m", // Red
+var levels = []levelConfig{
+	{"\033[0m", os.Stdout},  // No color
+	{"\033[36m", os.Stdout}, // Cyan
+	{"\033[32m", os.Stdout}, // Green
+	{"\033[33m", os.Stderr}, // Yellow
+	{"\033[31m", os.Stderr}, // Red
 }
 
-func InitLogger(enableVerbose bool) {
-	logger = log.New(os.Stdout, "", 0)
-	verbose = enableVerbose
 
+func init() {
 	// Reset color on windows
 	if runtime.GOOS == "windows" {
-		for i := range colors {
-			colors[i] = ""
+		for i := range levels {
+			levels[i].color = ""
 		}
 	}
+
+	// Initialize logger
+	logger = log.New(os.Stdout, "", 0)
 }
 
-func setLoggerOptions(mode loggerMode) {
-	logger.SetFlags(0)
-	switch mode {
-	case none, debug, info:
-		logger.SetOutput(os.Stdout)
-	case warn, error:
-		logger.SetOutput(os.Stderr)
-	default:
-		panic("No such logger mode")
-	}
-	// Set color
-	logger.Print(string(colors[mode]))
+func printColor(m level, a any) {
+	color := levels[m].color
+	noColor := levels[none].color
+	logger.Print(string(color), a, string(noColor))
 }
 
-func Println(a ...any) {
-	setLoggerOptions(none)
-	log.Println(a...)
+// func printfColor(m level, f string, a ...any) {
+// 	color := levels[m].color
+// 	noColor := levels[none].color
+// 	format := "%s" + f + "%s"
+// 	a = append(a, noColor)
+// 	a = append([]any{color}, a)
+//
+// 	logger.Printf(format, a...)
+// }
+
+func Info(s string) {
+	logger.SetOutput(levels[info].output)
+	printColor(info, s)
 }
 
-func Print(a ...any) {
-	setLoggerOptions(none)
-	log.Print(a...)
+func Warn(s string) {
+	logger.SetOutput(levels[warn].output)
+	printColor(warn, s)
 }
 
-func Printf(format string, a ...any) {
-	setLoggerOptions(none)
-	log.Printf(format, a...)
-}
-
-func Infoln(a ...any) {
-	setLoggerOptions(info)
-	log.Println(a...)
-}
-
-func Info(a ...any) {
-	setLoggerOptions(info)
-	log.Print(a...)
-}
-
-func Infof(format string, a ...any) {
-	setLoggerOptions(info)
-	logger.Printf(format, a...)
-}
-
-func Debugln(a ...any) {
-	if verbose {
-		setLoggerOptions(debug)
-		logger.Println(a...)
-	}
-}
-
-func Debugf(format string, a ...any) {
-	if verbose {
-		setLoggerOptions(debug)
-		logger.Printf(format, a...)
-	}
-}
-
-func WarnLn(a ...any) {
-	setLoggerOptions(warn)
-	logger.Println(a...)
-}
-
-func Warnf(format string, a ...any) {
-	setLoggerOptions(warn)
-	logger.Printf(format, a...)
-}
-
-func Errorln(a ...any) {
-	setLoggerOptions(error)
-	logger.Println(a...)
-}
-
-func Errorf(format string, a ...any) {
-	setLoggerOptions(error)
-	logger.Printf(format, a...)
+func Error(a any) {
+	logger.SetOutput(levels[err].output)
+	printColor(err, a)
 }
