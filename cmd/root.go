@@ -9,6 +9,7 @@ import (
 	config "github.com/tts2k/anitrack/cmd/config"
 	logger "github.com/tts2k/anitrack/cmd/logger"
 	site "github.com/tts2k/anitrack/cmd/site"
+	anime "github.com/tts2k/anitrack/cmd/anime"
 )
 
 const VERSION = "0.1"
@@ -39,6 +40,7 @@ func init() {
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(config.Command)
 	rootCmd.AddCommand(site.Command)
+	rootCmd.AddCommand(anime.Command)
 }
 
 func Execute() {

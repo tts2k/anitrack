@@ -2,11 +2,13 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 
 	config "github.com/tts2k/anitrack/cmd/config"
 	site "github.com/tts2k/anitrack/lib"
+	kitsu "github.com/tts2k/anitrack/lib/kitsu"
 )
 
 var Command *cobra.Command
@@ -14,14 +16,23 @@ var Command *cobra.Command
 func loginCommandRun(_ *cobra.Command, _ []string) {
 	conf := config.GetConfig()
 
-	s := site.New(conf.ActiveSite)
+	var s site.Site
+	switch strings.ToLower(conf.ActiveSite) {
+	case "kitsu":
+		s = kitsu.New()
+	}
 	accessToken, refreshToken, err := s.Login()
 	if err != nil {
 		return
 	}
 
-	config.SetToken(accessToken, refreshToken)
+	config.SetTokens(accessToken, refreshToken)
 	fmt.Println("Login success!")
+}
+
+func logoutCommandRun(_ *cobra.Command, _ []string) {
+	config.RemoveTokens()
+	fmt.Println("Logout success!")
 }
 
 func setCommandRun(_ *cobra.Command, _ []string) {
@@ -43,9 +54,16 @@ func init() {
 	loginCommand := &cobra.Command{
 		Use:   "login",
 		Short: "Login to current site",
-		Run:  loginCommandRun,
+		Run:   loginCommandRun,
+	}
+
+	logoutCommandRun := &cobra.Command{
+		Use:   "logout",
+		Short: "Logout to current site",
+		Run:   logoutCommandRun,
 	}
 
 	Command.AddCommand(setCommand)
 	Command.AddCommand(loginCommand)
+	Command.AddCommand(logoutCommandRun)
 }

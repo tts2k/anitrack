@@ -8,7 +8,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/spf13/viper"
+
 	logger "github.com/tts2k/anitrack/cmd/logger"
+	site "github.com/tts2k/anitrack/lib"
+	kitsu "github.com/tts2k/anitrack/lib/kitsu"
 )
 
 // Get modified time of a file
@@ -75,4 +79,20 @@ func Prompt(message string, loop bool) bool {
 	}
 	
 	return false
+}
+
+// Initialize a site
+func InitSite() (site.Site, error) {
+	activeSite := viper.GetString("active_site")
+
+	switch strings.ToLower(activeSite) {
+	case "kitsu":
+		return kitsu.New(), nil
+	case "mal":
+		return nil, errors.New("mal not implemented")
+	case "anilist":
+		return nil, errors.New("anilist not implemented")
+	}
+
+	return nil, errors.New("site not implemented")
 }

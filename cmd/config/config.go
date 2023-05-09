@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -91,9 +93,9 @@ func InitConfig() {
 	}
 
 	// Default active site
-	viper.SetDefault("default_site", "Kitsu")
+	viper.SetDefault("active_site", "Kitsu")
 
-	config.ActiveSite = viper.GetString("default_site")
+	config.ActiveSite = viper.GetString("active_site")
 	config.ConfigPath = viper.ConfigFileUsed()
 
 	// Unmarshal config file
@@ -107,7 +109,7 @@ func GetConfig() *Config {
 	return &config
 }
 
-func SetToken(accessToken string, refreshToken string) {
+func SetTokens(accessToken string, refreshToken string) {
 	switch strings.ToLower(config.ActiveSite) {
 	case "kitsu":
 		config.Kitsu.AccessToken = accessToken
@@ -115,6 +117,41 @@ func SetToken(accessToken string, refreshToken string) {
 		viper.Set("Kitsu", config.Kitsu)
 	case "mal":
 	case "anilist":
+	}
+
+	err := viper.WriteConfig()
+	if err != nil {
+		fmt.Println(err)
+		fmt.Println("Error writing config to disk")
+	}
+}
+
+// https://github.com/spf13/viper/issues/632
+func viperUnset(key string) error {
+    configMap := viper.AllSettings()
+    delete(configMap, key)
+    encodedConfig, _ := json.MarshalIndent(configMap, "", " ")
+    err := viper.ReadConfig(bytes.NewReader(encodedConfig))
+    if err != nil {
+        return err
+    }
+	return nil
+}
+
+func RemoveTokens() {
+	switch strings.ToLower(config.ActiveSite) {
+	case "kitsu":
+		config.Kitsu.AccessToken = ""
+		config.Kitsu.RefreshToken = ""
+		viperUnset("Kitsu")
+	case "mal":
+		config.Mal.AccessToken = ""
+		config.Mal.RefreshToken = ""
+		viperUnset("Mal")
+	case "anilist":
+		config.AniList.AccessToken = ""
+		config.AniList.RefreshToken = ""
+		viperUnset("Anilist")
 	}
 
 	err := viper.WriteConfig()

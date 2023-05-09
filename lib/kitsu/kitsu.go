@@ -14,10 +14,29 @@ import (
 	"syscall"
 
 	"golang.org/x/term"
+	"github.com/tts2k/anitrack/lib"
 )
 
 type Kitsu struct {
 	baseURL string
+}
+
+type kitsuAnime struct{
+	Title struct {
+		Eng string `json:"en"`
+		Roman string `json:"en_jp"`
+		Jap string `json:"ja_jp"`
+	} `json:"titles"`
+	Rating string `json:"averageRating"`
+	Status string `json:"status"`
+	EpisodeCount int `json:"episodeCount"`
+	SubType string `json:"subType"`
+}
+
+type kitsuRepsonse struct {
+	Data []struct{
+		Attributes kitsuAnime `json:"attributes"`
+	} `json:"data"`
 }
 
 type errRes struct {
@@ -108,4 +127,48 @@ func (k *Kitsu) Login() (string, string, error) {
 	}
 
 	return respBody.AccessToken, respBody.RefreshToken, nil
+}
+
+func (k *Kitsu) Trending() ([]lib.Anime, error) {
+	const EndPoint = "edge/anime"
+	
+	joinedURL, err := url.JoinPath(k.baseURL, EndPoint)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := http.Get(
+		joinedURL,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var respBody kitsuRepsonse
+	err = json.Unmarshal(bodyBytes, &respBody)
+	if err != nil {
+		fmt.Println(err)
+		return nil, errors.New("malformed json body")
+	}
+
+	var result []lib.Anime
+	for _, d := range(respBody.Data) {
+		anime := lib.Anime{
+			Title: d.Attributes.Title.Eng,
+			Rating: d.Attributes.Rating,
+			Status: d.Attributes.Status,
+			EpisodeCount: d.Attributes.EpisodeCount,
+			SubType: d.Attributes.SubType,
+		}
+
+		result = append(result, anime)
+	}
+
+	return result, nil
 }
