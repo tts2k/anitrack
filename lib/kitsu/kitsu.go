@@ -14,6 +14,7 @@ import (
 	"syscall"
 
 	"golang.org/x/term"
+
 	"github.com/tts2k/anitrack/lib"
 )
 
@@ -145,18 +146,24 @@ func (k *Kitsu) Trending() ([]lib.Anime, error) {
 	}
 	defer resp.Body.Close()
 
-	bodyBytes, err := io.ReadAll(resp.Body)
+	bodyBuffer := bytes.NewBuffer([]byte{})
+
+	// Copy response body to buffer
+	_, err = io.Copy(bodyBuffer, resp.Body)
 	if err != nil {
+		fmt.Println("cannot write response body to buffer")
 		return nil, err
 	}
 
+	// Parse json
 	var respBody kitsuRepsonse
-	err = json.Unmarshal(bodyBytes, &respBody)
+	err = json.Unmarshal(bodyBuffer.Bytes(), &respBody)
 	if err != nil {
 		fmt.Println(err)
 		return nil, errors.New("malformed json body")
 	}
 
+	// Map response to data struct
 	var result []lib.Anime
 	for _, d := range(respBody.Data) {
 		anime := lib.Anime{

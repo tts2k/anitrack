@@ -2,27 +2,26 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/spf13/cobra"
 
 	config "github.com/tts2k/anitrack/cmd/config"
-	site "github.com/tts2k/anitrack/lib"
-	kitsu "github.com/tts2k/anitrack/lib/kitsu"
+	logger "github.com/tts2k/anitrack/cmd/logger"
+	utils "github.com/tts2k/anitrack/cmd/utils"
 )
 
 var Command *cobra.Command
 
 func loginCommandRun(_ *cobra.Command, _ []string) {
-	conf := config.GetConfig()
-
-	var s site.Site
-	switch strings.ToLower(conf.ActiveSite) {
-	case "kitsu":
-		s = kitsu.New()
+	s, err := utils.InitSite()
+	if err != nil {
+		logger.Error(err)
+		return
 	}
+
 	accessToken, refreshToken, err := s.Login()
 	if err != nil {
+		logger.Error(err)
 		return
 	}
 

@@ -89,9 +89,9 @@ func InitSite() (site.Site, error) {
 	case "kitsu":
 		return kitsu.New(), nil
 	case "mal":
-		return nil, errors.New("mal not implemented")
+		return nil, errors.New("mal is not implemented")
 	case "anilist":
-		return nil, errors.New("anilist not implemented")
+		return nil, errors.New("anilist is not implemented")
 	}
 
 	return nil, errors.New("site not implemented")
