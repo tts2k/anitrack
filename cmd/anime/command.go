@@ -40,10 +40,28 @@ func animeCommandRun(_ *cobra.Command, _ []string) {
 	fmt.Println(resp)
 }
 
+func listShowsCommandRun(_ *cobra.Command, _ []string) {
+	site, err := utils.InitSite()
+	if err != nil {
+		logger.Error(err)
+		return
+	}
+
+	site.UserAnime(1, 1)
+}
+
 func init() {
 	Command = &cobra.Command{
 		Use:   "anime",
 		Short: "Search/Query anime. Running without subcommand with print a list of trending anime",
 		Run: animeCommandRun,
 	}
+
+	listShowsCommand := &cobra.Command{
+		Use: "list-shows",
+		Short: "List all shows from your library",
+		Run: listShowsCommandRun,
+	}
+
+	Command.AddCommand(listShowsCommand)
 }

@@ -84,10 +84,15 @@ func Prompt(message string, loop bool) bool {
 // Initialize a site
 func InitSite() (site.Site, error) {
 	activeSite := viper.GetString("active_site")
+	activeSiteLower := strings.ToLower(activeSite)
+	authData := viper.GetStringMapString(activeSiteLower)
 
-	switch strings.ToLower(activeSite) {
+	switch activeSiteLower {
 	case "kitsu":
-		return kitsu.New(), nil
+		return kitsu.New(
+			authData["accessToken"],
+			authData["refresh"],
+		), nil
 	case "mal":
 		return nil, errors.New("mal is not implemented")
 	case "anilist":

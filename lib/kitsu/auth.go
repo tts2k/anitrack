@@ -14,46 +14,11 @@ import (
 	"syscall"
 
 	"golang.org/x/term"
-
-	"github.com/tts2k/anitrack/lib"
 )
 
-type Kitsu struct {
-	baseURL string
-}
-
-type kitsuAnime struct{
-	Title struct {
-		Eng string `json:"en"`
-		Roman string `json:"en_jp"`
-		Jap string `json:"ja_jp"`
-	} `json:"titles"`
-	Rating string `json:"averageRating"`
-	Status string `json:"status"`
-	EpisodeCount int `json:"episodeCount"`
-	SubType string `json:"subType"`
-}
-
-type kitsuRepsonse struct {
-	Data []struct{
-		Attributes kitsuAnime `json:"attributes"`
-	} `json:"data"`
-}
-
-type errRes struct {
-	Name string `json:"error"`
-	Description string `json:"error_description"`
-}
-
 type authData struct {
-	AccessToken string `json:"access_token"`
+	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
-}
-
-func New() *Kitsu {
-	return &Kitsu{
-		baseURL: "https://kitsu.io/api",
-	}
 }
 
 func (k *Kitsu) Login() (string, string, error) {
@@ -106,7 +71,7 @@ func (k *Kitsu) Login() (string, string, error) {
 		return "", "", nil
 	}
 
-	if (resp.StatusCode != 200) {
+	if resp.StatusCode != 200 {
 		var errResp errRes
 		err = json.Unmarshal(bodyBytes, &errResp)
 		if err != nil {
@@ -128,54 +93,4 @@ func (k *Kitsu) Login() (string, string, error) {
 	}
 
 	return respBody.AccessToken, respBody.RefreshToken, nil
-}
-
-func (k *Kitsu) Trending() ([]lib.Anime, error) {
-	const EndPoint = "edge/anime"
-	
-	joinedURL, err := url.JoinPath(k.baseURL, EndPoint)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := http.Get(
-		joinedURL,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	bodyBuffer := bytes.NewBuffer([]byte{})
-
-	// Copy response body to buffer
-	_, err = io.Copy(bodyBuffer, resp.Body)
-	if err != nil {
-		fmt.Println("cannot write response body to buffer")
-		return nil, err
-	}
-
-	// Parse json
-	var respBody kitsuRepsonse
-	err = json.Unmarshal(bodyBuffer.Bytes(), &respBody)
-	if err != nil {
-		fmt.Println(err)
-		return nil, errors.New("malformed json body")
-	}
-
-	// Map response to data struct
-	var result []lib.Anime
-	for _, d := range(respBody.Data) {
-		anime := lib.Anime{
-			Title: d.Attributes.Title.Eng,
-			Rating: d.Attributes.Rating,
-			Status: d.Attributes.Status,
-			EpisodeCount: d.Attributes.EpisodeCount,
-			SubType: d.Attributes.SubType,
-		}
-
-		result = append(result, anime)
-	}
-
-	return result, nil
 }

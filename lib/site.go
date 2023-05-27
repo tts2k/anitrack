@@ -11,4 +11,5 @@ type Anime struct{
 type Site interface {
 	Login() (string, string, error)
 	Trending() ([]Anime, error)
+	UserAnime(page int, limit int) ([]Anime, error)
 }
