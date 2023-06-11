@@ -3,8 +3,6 @@ package lib
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
-	"fmt"
 	"github.com/tts2k/anitrack/lib"
 	"io"
 	"net/http"
@@ -29,9 +27,9 @@ type kitsuAnime struct {
 	SubType      string `json:"subType"`
 }
 
-type kitsuRepsonse struct {
+type kitsuRepsonse[T any] struct {
 	Data []struct {
-		Attributes kitsuAnime `json:"attributes"`
+		Attributes T `json:"attributes"`
 	} `json:"data"`
 }
 
@@ -74,18 +72,17 @@ func (k *Kitsu) Trending() ([]lib.Anime, error) {
 	}
 
 	// Parse json
-	var respBody kitsuRepsonse
+	var respBody kitsuRepsonse[kitsuAnime]
 	err = json.Unmarshal(bodyBuffer.Bytes(), &respBody)
 	if err != nil {
-		fmt.Println(err)
-		return nil, errors.New("malformed json body")
+		return nil, err
 	}
 
 	// Map response to data struct
 	var result []lib.Anime
 	for _, d := range respBody.Data {
 		anime := lib.Anime{
-			Title:        d.Attributes.Title.Eng,
+			Title:        d.Attributes.Title.Eng, // TODO: support mutliple titile types
 			Rating:       d.Attributes.Rating,
 			Status:       d.Attributes.Status,
 			EpisodeCount: d.Attributes.EpisodeCount,
@@ -96,41 +93,4 @@ func (k *Kitsu) Trending() ([]lib.Anime, error) {
 	}
 
 	return result, nil
-}
-
-func (k *Kitsu) UserAnime(page int, limit int) ([]lib.Anime, error) {
-	const EndPoint = "edge/library-entries"
-
-	joinedURL, err := url.JoinPath(k.baseURL, EndPoint)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest(
-		http.MethodGet,
-		joinedURL,
-		nil,
-	)
-	req.Header.Add("Authorization", "Bearer "+k.accessToken)
-	if err != nil {
-		return nil, err
-	}
-
-	// Do request
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	bodyBuffer := bytes.NewBuffer([]byte{})
-	// Copy response body to buffer
-	_, err = io.Copy(bodyBuffer, resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	fmt.Println(bodyBuffer.String())
-
-	return nil, nil
 }

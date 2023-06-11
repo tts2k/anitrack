@@ -90,8 +90,8 @@ func InitSite() (site.Site, error) {
 	switch activeSiteLower {
 	case "kitsu":
 		return kitsu.New(
-			authData["accessToken"],
-			authData["refresh"],
+			authData["accesstoken"],
+			authData["refreshtoken"],
 		), nil
 	case "mal":
 		return nil, errors.New("mal is not implemented")
