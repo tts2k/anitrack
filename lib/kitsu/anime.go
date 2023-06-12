@@ -1,10 +1,8 @@
 package lib
 
 import (
-	"bytes"
 	"encoding/json"
 	"github.com/tts2k/anitrack/lib"
-	"io"
 	"net/url"
 )
 
@@ -43,17 +41,9 @@ func (k *Kitsu) Trending() ([]lib.Anime, error) {
 	}
 	defer resp.Body.Close()
 
-	bodyBuffer := bytes.NewBuffer([]byte{})
-
-	// Copy response body to buffer
-	_, err = io.Copy(bodyBuffer, resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
 	// Parse json
 	var respBody kitsuAnimeRepsonse
-	err = json.Unmarshal(bodyBuffer.Bytes(), &respBody)
+	err = json.NewDecoder(resp.Body).Decode(&respBody)
 	if err != nil {
 		return nil, err
 	}

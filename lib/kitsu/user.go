@@ -51,7 +51,6 @@ func (k *Kitsu) User() (lib.User, error) {
 	req.URL.RawQuery = query.Encode()
 
 	// Header
-	req.Header.Add("Accept", "application/vnd.api+json")
 	req.Header.Add("Content-Type", "application/vnd.api+json")
 	req.Header.Add("Authorization", "Bearer "+k.accessToken)
 
@@ -62,16 +61,9 @@ func (k *Kitsu) User() (lib.User, error) {
 	}
 	defer resp.Body.Close()
 
-	bodyBuffer := bytes.NewBuffer([]byte{})
-	// Copy response body to buffer
-	_, err = io.Copy(bodyBuffer, resp.Body)
-	if err != nil {
-		return lib.User{}, err
-	}
-
 	// Parse json
 	var respBody kitsuUserResponse
-	err = json.Unmarshal(bodyBuffer.Bytes(), &respBody)
+	err = json.NewDecoder(resp.Body).Decode(&respBody)
 	if err != nil {
 		return lib.User{}, err
 	}

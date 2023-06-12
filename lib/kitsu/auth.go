@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -66,14 +65,9 @@ func (k *Kitsu) Login() (string, string, error) {
 	}
 	defer resp.Body.Close()
 
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", "", nil
-	}
-
 	if resp.StatusCode != 200 {
 		var errResp kitsuErrRes
-		err = json.Unmarshal(bodyBytes, &errResp)
+		err = json.NewDecoder(resp.Body).Decode(&errResp)
 		if err != nil {
 			fmt.Println(err)
 			fmt.Println("Request failed with unknown error")
@@ -86,7 +80,7 @@ func (k *Kitsu) Login() (string, string, error) {
 	}
 
 	var respBody authData
-	err = json.Unmarshal(bodyBytes, &respBody)
+	err = json.NewDecoder(resp.Body).Decode(&respBody)
 	if err != nil {
 		fmt.Println("Malformed response body")
 		return "", "", errors.New("Login failed")
