@@ -3,6 +3,7 @@ package lib
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -55,7 +56,7 @@ func (k *Kitsu) User() (lib.User, error) {
 	req.Header.Add("Authorization", "Bearer "+k.accessToken)
 
 	// Do request
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := k.client.Do(req)
 	if err != nil {
 		return lib.User{}, err
 	}
@@ -75,6 +76,11 @@ func (k *Kitsu) User() (lib.User, error) {
 		return lib.User{}, err
 	}
 
+	// Check empty
+	if len(respBody.Data) == 0 {
+		return lib.User{}, errors.New("User not found. Try re-logging in")
+	}
+
 	// Map response to data struct
 	result := lib.User{}
 	result.ID = respBody.Data[0].ID
@@ -87,7 +93,13 @@ func (k *Kitsu) User() (lib.User, error) {
 }
 
 func (k *Kitsu) UserAnime(page int, limit int) ([]lib.Anime, error) {
-	const EndPoint = "edge/library-entries"
+	const EndPoint = "edge/library-entries/"
+
+	// Get user id
+	user, err := k.User()
+	if err != nil {
+		return nil, err
+	}
 
 	joinedURL, err := url.JoinPath(k.baseURL, EndPoint)
 	if err != nil {
@@ -104,8 +116,13 @@ func (k *Kitsu) UserAnime(page int, limit int) ([]lib.Anime, error) {
 		return nil, err
 	}
 
+	// Query
+	query := req.URL.Query()
+	query.Add("filter[userId]", user.ID)
+	req.URL.RawQuery = query.Encode()
+
 	// Do request
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := k.client.Do(req)
 	if err != nil {
 		return nil, err
 	}

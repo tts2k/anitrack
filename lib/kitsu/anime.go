@@ -5,15 +5,8 @@ import (
 	"encoding/json"
 	"github.com/tts2k/anitrack/lib"
 	"io"
-	"net/http"
 	"net/url"
 )
-
-type Kitsu struct {
-	baseURL      string
-	accessToken  string
-	refreshToken string
-}
 
 type kitsuAnime struct {
 	Title struct {
@@ -27,23 +20,10 @@ type kitsuAnime struct {
 	SubType      string `json:"subType"`
 }
 
-type kitsuRepsonse[T any] struct {
+type kitsuAnimeRepsonse struct {
 	Data []struct {
-		Attributes T `json:"attributes"`
+		Attributes kitsuAnime `json:"attributes"`
 	} `json:"data"`
-}
-
-type errRes struct {
-	Name        string `json:"error"`
-	Description string `json:"error_description"`
-}
-
-func New(accessToken string, refreshToken string) *Kitsu {
-	return &Kitsu{
-		baseURL:      "https://kitsu.io/api",
-		accessToken:  accessToken,
-		refreshToken: refreshToken,
-	}
 }
 
 func (k *Kitsu) Trending() ([]lib.Anime, error) {
@@ -55,7 +35,7 @@ func (k *Kitsu) Trending() ([]lib.Anime, error) {
 	}
 
 	// Do request
-	resp, err := http.Get(
+	resp, err := k.client.Get(
 		joinedURL,
 	)
 	if err != nil {
@@ -72,7 +52,7 @@ func (k *Kitsu) Trending() ([]lib.Anime, error) {
 	}
 
 	// Parse json
-	var respBody kitsuRepsonse[kitsuAnime]
+	var respBody kitsuAnimeRepsonse
 	err = json.Unmarshal(bodyBuffer.Bytes(), &respBody)
 	if err != nil {
 		return nil, err

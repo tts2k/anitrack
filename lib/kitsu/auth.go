@@ -72,7 +72,7 @@ func (k *Kitsu) Login() (string, string, error) {
 	}
 
 	if resp.StatusCode != 200 {
-		var errResp errRes
+		var errResp kitsuErrRes
 		err = json.Unmarshal(bodyBytes, &errResp)
 		if err != nil {
 			fmt.Println(err)

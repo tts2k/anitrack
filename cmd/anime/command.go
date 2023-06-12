@@ -47,7 +47,14 @@ func listShowsCommandRun(_ *cobra.Command, _ []string) {
 		return
 	}
 
+	s := spinner.New(spinner.CharSets[11], 100 * time.Millisecond)
+	s.Suffix = " Loading..."
+
+	s.Start()
+
 	site.UserAnime(1, 1)
+
+	s.Stop()
 }
 
 func init() {
