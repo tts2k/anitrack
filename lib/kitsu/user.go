@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"github.com/tts2k/anitrack/lib"
 )
@@ -84,7 +85,7 @@ func (k *Kitsu) User() (lib.User, error) {
 	return result, nil
 }
 
-func (k *Kitsu) UserAnime(page int, limit int) ([]lib.Anime, error) {
+func (k *Kitsu) UserAnime(page uint, limit uint) ([]lib.Anime, error) {
 	const EndPoint = "edge/library-entries/"
 
 	// Get user id
@@ -111,6 +112,8 @@ func (k *Kitsu) UserAnime(page int, limit int) ([]lib.Anime, error) {
 	// Query
 	query := req.URL.Query()
 	query.Add("filter[userId]", user.ID)
+	query.Add("page[offset]", strconv.FormatUint(uint64(page), 10))
+	query.Add("page[limit]", strconv.FormatUint(uint64(limit), 10))
 	req.URL.RawQuery = query.Encode()
 
 	// Do request

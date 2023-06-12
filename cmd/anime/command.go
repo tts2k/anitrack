@@ -40,19 +40,23 @@ func animeCommandRun(_ *cobra.Command, _ []string) {
 	fmt.Println(resp)
 }
 
-func listShowsCommandRun(_ *cobra.Command, _ []string) {
+func listShowsCommandRun(cmd *cobra.Command, _ []string) {
 	site, err := utils.InitSite()
 	if err != nil {
 		logger.Error(err)
 		return
 	}
 
+	flags := cmd.Flags()
+	page, _ := flags.GetUint("page")
+	limit, _ := flags.GetUint("limit")
+
 	s := spinner.New(spinner.CharSets[11], 100 * time.Millisecond)
 	s.Suffix = " Loading..."
 
 	s.Start()
 
-	site.UserAnime(1, 1)
+	site.UserAnime(page, limit)
 
 	s.Stop()
 }
@@ -71,4 +75,6 @@ func init() {
 	}
 
 	Command.AddCommand(listShowsCommand)
+	Command.PersistentFlags().UintP("page", "p", 0, "Which page to get")
+	Command.PersistentFlags().UintP("limit", "l", 10, "Which number of item per page")
 }
