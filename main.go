@@ -1,6 +1,5 @@
 /*
-Copyright © 2023 NAME HERE <EMAIL ADDRESS>
-
+Copyright © 2023 tts2k <tranthaison2000@gmail.com>
 */
 package main
 
